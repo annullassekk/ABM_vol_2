@@ -1,0 +1,200 @@
+\documentclass[]{article}
+% \usepackage[utf8]{inputenc}
+\usepackage[polish]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\geometry{margin=2.5cm}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\thepage}
+\fancyhead[L]{Raport Matematyczny ABM 2.0}
+
+\title{\textbf{Raport Wzorów Matematycznych} \\
+\textit{Model Symulacyjny Agent-Based Model (ABM 2.0)}}
+\author{Projekt Zespołowy}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{Wprowadzenie}
+
+Niniejszy raport dokumentuje wszystkie wzory matematyczne wykorzystane w modelu symulacyjnym ABM 2.0. Model odwzorowuje dynamikę demograficzną populacji z uwzględnieniem urodzin, zgonów, powstawania/rozpadu gospodarstw domowych oraz wpływu chorób na życie obywateli.
+
+\section{Ryzyka Śmiertelności}
+
+\subsection{Ogólny Model Ryzyka Śmiertelności}
+
+Ryzyko śmiertelności dla każdego obywatela obliczane jest miesięcznie na podstawie czterech głównych komponentów: wieku, chorób, niepełnosprawności oraz płci.
+
+\subsubsection{Czynnik Wieku}
+
+Czynnik uwarunkowany wiekiem obliczany jest za pomocą funkcji wykładniczej:
+
+\begin{equation}
+R_{age} = \lambda_0 \cdot \left(1 + e^{\frac{a - a_0}{\sigma_a}}\right)
+\end{equation}
+
+gdzie:
+\begin{itemize}
+    \item $\lambda_0 = 0.00005$ --- bazowa miesięczna stopa śmiertelności
+    \item $a$ --- wiek osoby (w latach)
+    \item $a_0 = 55$ --- wiek referencyjny (punkt przegięcia)
+    \item $\sigma_a = 15$ --- parametr skalowania
+\end{itemize}
+
+\subsubsection{Czynnik Chorób i Niepełnosprawności}
+
+Czynnik związany z chorobami i niepełnosprawością jest obliczany jako kombinacja liniowa liczby chorób oraz wskaźnika niepełnosprawności:
+
+\begin{equation}
+R_{disease} = \mu \left(0.001 \cdot n_{cond} + 0.005 \cdot d_i\right)
+\end{equation}
+
+gdzie:
+\begin{itemize}
+    \item $\mu = 1.0$ --- mnożnik chorób (parametr kalibracji modelu)
+    \item $n_{cond}$ --- liczba chorób (warunków zdrowotnych)
+    \item $d_i$ --- wskaźnik niepełnosprawności osoby
+    \item współczynniki 0.001 i 0.005 --- wagi dla liczby chorób i niepełnosprawności
+\end{itemize}
+
+\subsubsection{Całkowite Ryzyko Śmiertelności}
+
+Całkowite miesięczne ryzyko śmiertelności obliczane jest jako suma komponentów z uwzględnieniem przewagi kobiet:
+
+\begin{equation}
+R_{mortality}(t) = \begin{cases}
+(R_{age} + R_{disease}) \cdot f_{sex} & \text{jeśli } sex = \text{kobieta} \\
+R_{age} + R_{disease} & \text{jeśli } sex = \text{mężczyzna}
+\end{cases}
+\end{equation}
+
+gdzie $f_{sex} = 0.85$ --- współczynnik redukcji śmiertelności dla kobiet (kobiety mają 15\% niższe ryzyko).
+
+Ostateczne ryzyko jest ograniczane do przedziału $[0, 1]$:
+
+\begin{equation}
+R_{final} = \min\left(\max(R_{mortality}, 0), 1\right)
+\end{equation}
+
+\subsubsection{Decyzja o Śmierci}
+
+Śmierć danej osoby w miesiącu $t$ jest modelowana jako zdarzenie bernoullowskie:
+
+\begin{equation}
+Death_i(t) = \begin{cases}
+True & \text{jeśli } U < R_{final} \\
+False & \text{w pozostałych przypadkach}
+\end{cases}
+\end{equation}
+
+gdzie $U \sim \text{Uniform}(0,1)$ --- zmienna losowa o rozkładzie jednostajnym.
+
+\section{Model Płodności i Narodzin}
+
+\subsection{Prawdopodobieństwo Urodzenia}
+
+Prawdopodobieństwo urodzenia dziecka w danym miesiącu obliczane jest tylko dla kobiet w wieku reprodukcyjnym (18-40 lat). Model uwzględnia wiek, okres szczytowej płodności oraz wpływ chorób.
+
+\subsubsection{Bazowa Funkcja Płodności}
+
+Bazowe ryzyko płodności modelowane jest za pomocą rozkładu normalnego (Gaussian) skoncentrowanego na wieku szczytowej płodności (27,5 lat):
+
+\begin{equation}
+f_{base}(a) = e^{-\frac{(a - a_{peak})^2}{\sigma^2}}
+\end{equation}
+
+gdzie:
+\begin{itemize}
+    \item $a$ --- wiek kobiety (w latach)
+    \item $a_{peak} = 27.5$ --- wiek szczytowej płodności
+    \item $\sigma^2 = 25$ --- parametr wariancji rozkładu normalnego
+\end{itemize}
+
+\subsubsection{Miesięczna Stopa Płodności}
+
+Miesięczna stopa płodności obliczana jest jako:
+
+\begin{equation}
+r_{fertility}(a) = \begin{cases}
+f_{base}(a) \cdot 0.003 & \text{jeśli } 18 \le a \le 40 \\
+0 & \text{w pozostałych przypadkach}
+\end{cases}
+\end{equation}
+
+gdzie współczynnik 0.003 odpowiada w przybliżeniu 3.6\% rocznej stopie płodności na szczycie.
+
+\section{Płodność Kobiet: Wiek i Determinanty Medyczne}
+
+Płodność kobiet jest kluczowym aspektem modelu demograficznego. Dane medyczne wskazują, że szczyt płodności przypada na wiek 20–25 lat, kiedy organizm osiąga najwyższą sprawność hormonalną i genetyczną. Po 30. roku życia płodność zaczyna stopniowo spadać, a po 35. roku życia proces ten przyspiesza.
+
+\subsection{Okno Optymalnego Wieku Prokreacyjnego}
+
+Statystyczne prawdopodobieństwo zajścia w ciążę w jednym cyklu miesięcznym w zależności od wieku przedstawia się następująco:
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Grupa wiekowa (lata)} & \textbf{Szansa na ciążę w cyklu (\\%)} & \textbf{Prawdopodobieństwo ciąży po 12 cyklach (")} \\
+\hline
+19–25 & 25\% & ~92\% \\
+26–29 & 20\% & ~85–90\% \\
+30–34 & 15–20\% & ~75–80\% \\
+35–39 & 10–15\% & ~50–60\% \\
+40–44 & 5–7\% & ~25–30\% \\
+45+ & <1–5\% & <10\% \\
+\hline
+\end{tabular}
+\caption{Prawdopodobieństwo zajścia w ciążę w zależności od wieku.}
+\end{table}
+
+\subsection{Ryzyko Poronień}
+
+Ryzyko utraty ciąży wzrasta wraz z wiekiem, głównie z powodu aberracji chromosomalnych. Tabela poniżej przedstawia ryzyko poronienia w różnych grupach wiekowych:
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Wiek kobiety (lata)} & \textbf{Ryzyko poronienia (")} \\
+\hline
+<20 & 17\% \\
+20–24 & 10–11\% \\
+25–29 & 10\% \\
+30–34 & 11–12\% \\
+35–39 & 17–25\% \\
+40–44 & 33–40\% \\
+45+ & 57–80\% \\
+\hline
+\end{tabular}
+\caption{Ryzyko poronienia w zależności od wieku.}
+\end{table}
+
+\subsection{Fizjologiczne Podłoże Płodności}
+
+Płodność kobiet zależy od rezerwy jajnikowej, która zmniejsza się wraz z wiekiem. W wieku 20–25 lat rezerwa jajnikowa jest najwyższa, co zapewnia optymalną jakość oocytów. Po 35. roku życia liczba pęcherzyków jajnikowych gwałtownie spada, co prowadzi do zmniejszenia potencjału rozrodczego.
+
+\section{Uwagi i Ograniczenia}
+
+\begin{itemize}
+    \item Model wykorzystuje podejście stochastyczne z generatorem liczb losowych
+    \item Wszystkie prawdopodobieństwa są ograniczane do przedziału $[0, 1]$
+    \item Parametry mogą być kalibrowane na podstawie danych rzeczywistych
+    \item Model zakłada niezależność zdarzeń demograficznych w ramach jednego miesiąca
+    \item Choroby są modelowane binarnie (osoba ma lub nie ma chorobę)
+\end{itemize}
+
+\end{document}

@@ -1,0 +1,23 @@
+Ranking wpływu czynników ryzyka na choroby
+=======================================
+
+Choroba: Kamica żółciowa
+  Dieta wysokotłuszczowa: 0.200
+  Palenie: 0.100
+  Brak aktywności: 0.000
+
+Choroba: Migrena
+  Palenie: 0.200
+  Brak aktywności: 0.000
+  Dieta wysokotłuszczowa: 0.000
+
+Choroba: Otyłość
+  Dieta wysokotłuszczowa: 0.400
+  Brak aktywności: 0.300
+  Palenie: 0.000
+
+Choroba: Stłuszczenie wątroby
+  Brak aktywności: 0.250
+  Dieta wysokotłuszczowa: 0.000
+  Palenie: 0.000
+

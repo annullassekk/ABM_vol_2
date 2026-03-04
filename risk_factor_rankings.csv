@@ -1,0 +1,13 @@
+disease,risk_factor,impact
+Kamica żółciowa,Dieta wysokotłuszczowa,0.200000
+Kamica żółciowa,Palenie,0.100000
+Kamica żółciowa,Brak aktywności,0.000000
+Migrena,Palenie,0.200000
+Migrena,Brak aktywności,0.000000
+Migrena,Dieta wysokotłuszczowa,0.000000
+Otyłość,Dieta wysokotłuszczowa,0.400000
+Otyłość,Brak aktywności,0.300000
+Otyłość,Palenie,0.000000
+Stłuszczenie wątroby,Brak aktywności,0.250000
+Stłuszczenie wątroby,Dieta wysokotłuszczowa,0.000000
+Stłuszczenie wątroby,Palenie,0.000000
